@@ -1,0 +1,69 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base ------------------------------------------------------------------------*/
+@layer base {
+  body {
+    @apply bg-white text-gray-900;
+    @apply dark:bg-gray-800 dark:text-white;
+    /* The text color will now be inherited and will not change with the theme */
+    transition-property: background-color;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 300ms;
+  }
+}
+/* Base ------------------------------------------------------------------------*/
+
+/* Components ------------------------------------------------------------------------*/
+@layer components {
+  .form-container {
+    @apply max-w-md mx-auto mt-10 p-6 bg-white dark:bg-gray-600 rounded shadow-lg dark:shadow-gray-900/50;
+  }
+
+  .form-input {
+    @apply w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600;
+  }
+
+  .btn-primary {
+    @apply bg-pink-800 text-white py-2 px-4 rounded mt-4 hover:bg-pink-700 disabled:bg-gray-400 w-full flex justify-center items-center;
+  }
+
+  .form-input-file {
+    @apply w-full text-gray-800 dark:text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-pink-50 dark:file:bg-pink-700 file:text-pink-700 dark:file:text-pink-50 hover:file:bg-pink-100 dark:hover:file:bg-pink-600;
+  }
+
+  .footer-container {
+    @apply w-full bg-gray-50 mt-auto;
+  }
+
+  .footer-content {
+    @apply container mx-auto py-8 px-4
+           flex flex-row items-center justify-center gap-20;
+  }
+
+  .footer-section {
+    @apply flex flex-col items-center;
+  }
+
+  .footer-profile {
+    @apply w-24 h-24 rounded-full;
+  }
+
+  .footer-contact {
+    @apply text-black flex flex-col items-center;
+  }
+
+  .footer-contact-title {
+    @apply text-2xl font-bold mb-4;
+  }
+
+  .footer-contact-button {
+    @apply text-blue-500 hover:text-blue-700 my-1;
+  }
+
+  .footer-map {
+    @apply w-[250px] h-[150px];
+  }
+}
+/* Footer ------------------------------------------------------------------------*/
