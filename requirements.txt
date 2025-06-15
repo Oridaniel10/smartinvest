@@ -19,4 +19,6 @@ react-leaflet leaflet
 chartjs-adapter-date-fns date-fns
 openai
 lucide-react
+azure-ai-inference
 @azure-rest/ai-inference @azure/core-auth
+finnhub-python

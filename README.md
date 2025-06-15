@@ -34,20 +34,41 @@ Here is a glimpse of the SmartInvest application interface.
 
 ## Tech Stack
 
--   **Frontend**: React.js, Vite, JavaScript (ES6+), CSS3
+-   **Frontend**: React.js, Vite, JavaScript (ES6+), **Tailwind CSS**
 -   **Backend**: Python, Flask
--   **Database**: Flask-SQLAlchemy (with SQLite as the default)
+-   **Database**: **MongoDB**
 -   **APIs & Services**:
     -   **Finnhub**: For real-time stock market data.
     -   **Azure AI Inference**: For the intelligent chat functionality.
 -   **State Management**: React Context API for authentication.
 -   **Routing**: React Router DOM.
+-   **Containerization**: **Docker**
 
-## Setup and Installation
+## Getting Started
 
-To get the application running locally, follow these steps:
+### Quick Start with Docker (Recommended)
 
-### 1. Backend Setup
+The easiest way to get the entire application running is by using the pre-built Docker image available on Docker Hub. This image contains all the necessary services, dependencies, and configurations.
+
+1.  **Pull the Docker image:**
+    ```bash
+    docker pull oridaniel10/smartinvest:latest
+    ```
+
+2.  **Run the Docker container:**
+    ```bash
+    docker run -p 3000:80 oridaniel10/smartinvest:latest
+    ```
+    
+3.  **Access the application:**
+    Once the container is running, open your web browser and navigate to:
+    [http://localhost:3000](http://localhost:
+
+### Local Development Setup
+
+Follow these steps if you want to run the services locally for development purposes.
+
+#### 1. Backend Setup
 
 ```bash
 # Navigate to the backend directory
@@ -60,15 +81,16 @@ source venv/bin/activate  # On Windows use `venv\Scripts\activate`
 # Install dependencies
 pip install -r requirements.txt
 
-# Create a .env file and add your Finnhub API key
-# Get it from https://finnhub.io/
+# Create a .env file and add your Finnhub API key and MongoDB connection string
+# NOTE: You need a running MongoDB instance for this to work.
 echo "FINNHUB_API_KEY=YOUR_API_KEY" > .env
+echo "MONGO_URI=mongodb://localhost:27017/smartinvest" >> .env
+
 
 # Run the Flask application
 flask run
 ```
-
-### 2. Frontend Setup
+#### 2. Frontend Setup
 
 ```bash
 # Navigate to the frontend directory in a new terminal
@@ -87,4 +109,5 @@ npm run dev
 ```
 
 ---
+
 

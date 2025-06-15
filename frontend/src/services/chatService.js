@@ -1,12 +1,13 @@
 import apiClient from './api';
 
 /**
- * Saves a single chat message to the backend.
- * @param {object} messageData - { message, role, session_id }
- * @returns {Promise<object>} The response from the server, including the session_id.
+ * Sends the entire conversation history to the backend to get a response from the AI.
+ * The backend will save the user message and the AI response.
+ * @param {object} payload - { messages, session_id, session_name }
+ * @returns {Promise<object>} The AI's response message object { role, content }.
  */
-export const saveMessage = async (messageData) => {
-    const response = await apiClient.post('/chat/send', messageData);
+export const askQuestion = async (payload) => {
+    const response = await apiClient.post('/chat/ask', payload);
     return response.data;
 };
 

@@ -4,8 +4,30 @@ from config.extensions import mongo
 from models.chat import ChatMessage
 from datetime import datetime, timedelta
 from bson import ObjectId
+from models.user import User
+from utils.portfolio_utils import calculate_portfolio_stats, generate_profile_as_text
+import os
+from azure.core.credentials import AzureKeyCredential
+from azure.ai.inference import ChatCompletionsClient
+import traceback
 
 chat_bp = Blueprint("chat", __name__)
+
+# --- AI Configuration ---
+AI_ENDPOINT = "https://models.github.ai/inference"
+AI_MODEL = "openai/gpt-4.1-nano"
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+
+# Initialize the AI client only if the token is available
+ai_client = None
+if GITHUB_TOKEN:
+    try:
+        ai_client = ChatCompletionsClient(
+            endpoint=AI_ENDPOINT,
+            credential=AzureKeyCredential(GITHUB_TOKEN)
+        )
+    except Exception as e:
+        print(f"Failed to initialize AI client: {e}")
 
 # listens for POST requests on /chat/send
 @chat_bp.route("/send", methods=["POST"])
@@ -101,6 +123,8 @@ def get_chat_history():
 @jwt_required()
 def delete_chat_session(session_id):
     user_id = get_jwt_identity()
+    print(f"--- Deletion Request ---")
+    print(f"Attempting to delete session '{session_id}' for user '{user_id}'")
     
     # We ensure the user can only delete their own sessions
     try:
@@ -109,6 +133,9 @@ def delete_chat_session(session_id):
             "session_id": session_id
         })
         
+        print(f"DB query complete. Messages deleted: {result.deleted_count}")
+        print(f"------------------------")
+
         if result.deleted_count > 0:
             return jsonify({"message": f"Session {session_id} deleted. {result.deleted_count} messages removed."}), 200
         else:
@@ -118,3 +145,70 @@ def delete_chat_session(session_id):
     except Exception as e:
         print(f"Error deleting session {session_id}: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
+
+@chat_bp.route("/ask", methods=["POST"])
+@jwt_required()
+def ask_ai():
+    if not ai_client:
+        return jsonify({"error": "AI service is not configured on the server"}), 503
+
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    try:
+        messages_history = data["messages"] # Expecting a list of message objects
+        user_message_content = messages_history[-1]['content']
+        session_id = data["session_id"]
+        session_name = data.get("session_name", "Untitled")
+    except (KeyError, IndexError):
+        return jsonify({"error": "Missing or invalid fields in request"}), 400
+
+    # 1. Save the user's message
+    user_chat_message = ChatMessage(
+        user_id=user_id, message=user_message_content, role='user',
+        session_id=session_id, session_name=session_name
+    )
+    mongo.db.chat.insert_one(user_chat_message.to_dict())
+
+    try:
+        # 2. Generate AI context from user's profile
+        raw_user_data = User.get_user_profile_data(user_id)
+        live_user_data = calculate_portfolio_stats(raw_user_data)
+        profile_context = generate_profile_as_text(live_user_data)
+
+        system_prompt = f"""You are SmartInvest AI, a helpful and concise financial assistant.
+        The user has provided the following summary of their investment portfolio. Use this information to answer their questions accurately.
+        ---
+        {profile_context}
+        ---
+        """
+
+        # 3. Call the AI model
+        api_history = [
+            {"role": "system", "content": system_prompt}
+        ]
+        # Map our 'ai' role to the standard 'assistant' role for the API
+        for msg in messages_history:
+             api_history.append({
+                 "role": "assistant" if msg["role"] == "ai" else msg["role"],
+                 "content": msg["content"]
+             })
+        
+        response = ai_client.complete(model=AI_MODEL, messages=api_history)
+        
+        ai_message_content = response.choices[0].message.content or "Sorry, I couldn't process that."
+
+        # 4. Save the AI's response
+        ai_chat_message = ChatMessage(
+            user_id=user_id, message=ai_message_content, role='ai',
+            session_id=session_id, session_name=session_name
+        )
+        mongo.db.chat.insert_one(ai_chat_message.to_dict())
+
+        # 5. Return the AI's response to the frontend
+        return jsonify({"role": "ai", "content": ai_message_content}), 200
+
+    except Exception as e:
+        print(f"Error during AI processing: {e}")
+        traceback.print_exc()
+        return jsonify({"error": "Failed to get response from AI"}), 500
