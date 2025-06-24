@@ -9,6 +9,7 @@ from utils.portfolio_utils import calculate_portfolio_stats, generate_profile_as
 import os
 from azure.core.credentials import AzureKeyCredential
 from azure.ai.inference import ChatCompletionsClient
+import google.generativeai as genai
 import traceback
 
 chat_bp = Blueprint("chat", __name__)
@@ -17,6 +18,7 @@ chat_bp = Blueprint("chat", __name__)
 AI_ENDPOINT = "https://models.github.ai/inference"
 AI_MODEL = "openai/gpt-4.1-nano"
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+GEMINI_API_KEY = os.getenv("GEMINI_FLASH_2")
 
 # Initialize the AI client only if the token is available
 ai_client = None
@@ -28,6 +30,16 @@ if GITHUB_TOKEN:
         )
     except Exception as e:
         print(f"Failed to initialize AI client: {e}")
+
+# Initialize Gemini client
+if GEMINI_API_KEY:
+    try:
+        genai.configure(api_key=GEMINI_API_KEY)
+        print("Gemini client configured successfully.")
+    except Exception as e:
+        print(f"Failed to configure Gemini client: {e}")
+else:
+    print("GEMINI_FLASH_2 key not found, Gemini model will not be available.")
 
 # listens for POST requests on /chat/send
 @chat_bp.route("/send", methods=["POST"])
@@ -60,10 +72,10 @@ def send_message():
     }), 200
 
 
-# listens for GET requests on /chat/sessions
-@chat_bp.route("/sessions", methods=["GET"])
-@jwt_required()
-def get_sessions():
+# # listens for GET requests on /chat/sessions
+# @chat_bp.route("/sessions", methods=["GET"])
+# @jwt_required()
+# def get_sessions():
     user_id = get_jwt_identity()
     one_week_ago = datetime.utcnow() - timedelta(days=7)
 
@@ -146,12 +158,10 @@ def delete_chat_session(session_id):
         print(f"Error deleting session {session_id}: {e}")
         return jsonify({"error": "An internal server error occurred"}), 500
 
+# listens for POST requests on /chat/ask and the function is called ask_ai
 @chat_bp.route("/ask", methods=["POST"])
 @jwt_required()
 def ask_ai():
-    if not ai_client:
-        return jsonify({"error": "AI service is not configured on the server"}), 503
-
     user_id = get_jwt_identity()
     data = request.get_json()
     
@@ -160,6 +170,7 @@ def ask_ai():
         user_message_content = messages_history[-1]['content']
         session_id = data["session_id"]
         session_name = data.get("session_name", "Untitled")
+        model_choice = data.get("model", "azure") # Default to azure
     except (KeyError, IndexError):
         return jsonify({"error": "Missing or invalid fields in request"}), 400
 
@@ -182,21 +193,48 @@ def ask_ai():
         {profile_context}
         ---
         """
+        
+        ai_message_content = ""
 
-        # 3. Call the AI model
-        api_history = [
-            {"role": "system", "content": system_prompt}
-        ]
-        # Map our 'ai' role to the standard 'assistant' role for the API
-        for msg in messages_history:
-             api_history.append({
-                 "role": "assistant" if msg["role"] == "ai" else msg["role"],
-                 "content": msg["content"]
-             })
+        # 3. Call the selected AI model
+        if model_choice == 'azure':
+            if not ai_client:
+                return jsonify({"error": "Azure AI service is not configured"}), 503
+
+            api_history = [{"role": "system", "content": system_prompt}]
+            for msg in messages_history:
+                api_history.append({
+                    "role": "assistant" if msg["role"] == "ai" else msg["role"],
+                    "content": msg["content"]
+                })
+            
+            response = ai_client.complete(model=AI_MODEL, messages=api_history)
+            ai_message_content = response.choices[0].message.content or "Sorry, I couldn't process that."
+
+        elif model_choice == 'gemini':
+            if not GEMINI_API_KEY:
+                return jsonify({"error": "Gemini AI service is not configured"}), 503
+            
+            gemini_model = genai.GenerativeModel('gemini-1.5-flash')
+            
+            # Gemini has a different message format
+            gemini_history = []
+            for msg in messages_history:
+                # Gemini uses 'model' for 'assistant'
+                role = 'user' if msg['role'] == 'user' else 'model'
+                gemini_history.append({'role': role, 'parts': [msg['content']]})
+
+            # Prepend system prompt to the conversation history
+            full_prompt = [
+                {'role': 'user', 'parts': [system_prompt]},
+                {'role': 'model', 'parts': ["Understood. I am SmartInvest AI, ready to assist with the user's portfolio."]}
+            ] + gemini_history
+
+            response = gemini_model.generate_content(full_prompt)
+            ai_message_content = response.text or "Sorry, I couldn't process that with Gemini."
         
-        response = ai_client.complete(model=AI_MODEL, messages=api_history)
-        
-        ai_message_content = response.choices[0].message.content or "Sorry, I couldn't process that."
+        else:
+            return jsonify({"error": "Invalid model selected"}), 400
 
         # 4. Save the AI's response
         ai_chat_message = ChatMessage(

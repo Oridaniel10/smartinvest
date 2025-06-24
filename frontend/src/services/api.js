@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 // Get the base URL from environment variables, with a fallback for local development
-const BASE_URL = import.meta.env.VITE_BASE_URL_SERVER || 'http://127.0.0.1:5000/api';
+const BASE_URL = import.meta.env.VITE_BASE_URL_SERVER || 'http://localhost:5000';
+
 
 /**
  * Create an Axios instance with a predefined base URL.

@@ -24,6 +24,7 @@ const ProtectedRoute = () => {
   }
 
   // if authenticated, render the protected content
+  //outlet is the child component that is being protected
   return <Outlet />;
 };
 

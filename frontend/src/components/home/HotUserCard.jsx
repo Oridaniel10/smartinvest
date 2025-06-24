@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom';
 
 const StatItem = ({ label, value, valueColor }) => (
   <div>
-    <p className="text-sm text-gray-400">{label}</p>
-    <p className={`font-semibold text-white ${valueColor}`}>{value}</p>
+    <p className="text-sm text-gray-600 dark:text-gray-400">{label}</p>
+    <p className={`font-semibold text-black dark:text-white ${valueColor}`}>{value}</p>
   </div>
 );
 
@@ -28,8 +28,8 @@ function HotUserCard({ user, rank }) {
           <div className="text-3xl font-bold text-pink-500">#{rank}</div>
           <img src={user.profile_image || `https://i.pravatar.cc/150?u=${user.id}`} alt={user.name} className="w-16 h-16 rounded-full border-2 border-pink-500" />
           <div>
-            <h3 className="text-xl font-bold text-white">{user.name}</h3>
-            <p className="text-gray-300 font-semibold text-sm" title="All-Time Profit/Loss">
+            <h3 className="text-xl font-bold text-black dark:text-white">{user.name}</h3>
+            <p className="text-gray-600 dark:text-gray-300 font-semibold text-sm" title="All-Time Profit/Loss">
               {formatCurrency(user.overall_pl)}
               <span className={`ml-2 font-mono ${plColor(user.overall_pl_percentage)}`}>
                 ({formatPercentage(user.overall_pl_percentage)})

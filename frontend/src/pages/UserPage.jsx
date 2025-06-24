@@ -9,7 +9,7 @@ import HoldingsList from '../components/profile/HoldingsList';
 import ChartsSection from '../components/profile/ChartsSection';
 
 function UserPage() {
-    const { username } = useParams(); // Get username from URL (e.g., /users/JohnDoe)
+    const { username } = useParams(); // Get username from URL (e.g., /users/ori)
     const [userData, setUserData] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);

@@ -19,6 +19,7 @@ function TradeForm({ onTransactionSuccess }) {
   const [error, setError] = useState(null);
 
   //send less api calls by debouncing the symbol input
+  //everytime the symbol change so the debouncedSymbol changed that trigger the useEffect
   const debouncedSymbol = useDebounce(symbol, 300);
 
   useEffect(() => {
@@ -152,7 +153,10 @@ function TradeForm({ onTransactionSuccess }) {
           id="price"
           type="number"
           value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          onChange={(e) => {
+            setPrice(e.target.value);
+            setCommission(e.target.value * 0.005);
+          }}
           placeholder="Price is fetched automatically"
           className="form-input mt-1"
           required

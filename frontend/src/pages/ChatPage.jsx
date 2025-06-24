@@ -18,6 +18,7 @@ function ChatPage() {
     const [sessionId, setSessionId] = useState(null);
     const [sessionName, setSessionName] = useState("Untitled Chat");
     const [error, setError] = useState(null);
+    const [model, setModel] = useState('azure'); // 'azure' or 'gemini'
     const messagesEndRef = useRef(null);
 
     // Effect for session management (create on mount, delete on unmount)
@@ -55,6 +56,7 @@ function ChatPage() {
                 messages: newMessages.slice(1), // Exclude the initial UI-only message
                 session_id: sessionId,
                 session_name: sessionName,
+                model: model // Send selected model to backend
             });
             
             setMessages(prev => [...prev, aiMessage]);
@@ -90,6 +92,14 @@ function ChatPage() {
                 <div ref={messagesEndRef} />
             </div>
             <div className="p-4 bg-gray-900 border-t border-gray-700">
+                <div className="flex items-center justify-center mb-2">
+                    <span className={`px-3 py-1 text-sm font-semibold rounded-l-lg cursor-pointer ${model === 'azure' ? 'bg-pink-600 text-white' : 'bg-gray-700 text-gray-400'}`} onClick={() => !isLoading && setModel('azure')}>
+                        Azure GPT-4.1
+                    </span>
+                    <span className={`px-3 py-1 text-sm font-semibold rounded-r-lg cursor-pointer ${model === 'gemini' ? 'bg-pink-600 text-white' : 'bg-gray-700 text-gray-400'}`} onClick={() => !isLoading && setModel('gemini')}>
+                        Gemini Flash 2
+                    </span>
+                </div>
                 <form onSubmit={handleSendMessage} className="flex items-center gap-4">
                     <input
                         type="text"

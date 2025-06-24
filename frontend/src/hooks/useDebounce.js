@@ -7,11 +7,13 @@ export function useDebounce(value, delay) {
 
   useEffect(
     () => {
-      // Set debouncedValue to value (passed in) after the specified delay
+      // Set debouncedValue to value (passed in) after the specified delay 300ms
+      //settimeout( function , delay)
       const handler = setTimeout(() => {
         setDebouncedValue(value);
       }, delay);
 
+      //every type cancel the back request and start a new one
       return () => {
         clearTimeout(handler);
       };

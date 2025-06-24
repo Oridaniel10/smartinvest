@@ -5,7 +5,7 @@ console.log('API Key loaded:', FINNHUB_API_KEY ? 'Yes' : 'No');
 
 const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
 
-// פונקציה עזר לבדיקת ה-API key
+// helper function to check if the API key is valid
 const checkApiKey = () => {
   if (!FINNHUB_API_KEY) {
     console.error('API Key is missing!');
@@ -14,6 +14,7 @@ const checkApiKey = () => {
   return FINNHUB_API_KEY;
 };
 
+// get stock quote from finnhub
 export const getStockQuote = async (symbol) => {
   const token = checkApiKey();
   try {
@@ -31,6 +32,7 @@ export const getStockQuote = async (symbol) => {
   }
 };
 
+// search for symbols in finnhub
 export const searchSymbols = async (query) => {
   if (!FINNHUB_API_KEY) {
     throw new Error('Finnhub API key is missing.');
@@ -55,6 +57,7 @@ export const searchSymbols = async (query) => {
   }
 };
 
+// get hot stocks from finnhub
 export const getHotStocks = async () => {
   // Check cache first
   const cachedData = sessionStorage.getItem('hotStocks');
@@ -127,6 +130,7 @@ export const getHotStocks = async () => {
   }
 };
 
+// get stock details from finnhub
 export const getStockDetails = async (symbol) => {
   const token = checkApiKey();
   try {
@@ -158,7 +162,7 @@ export const getStockDetails = async (symbol) => {
 
     console.log('Company response:', companyResponse.data);
 
-    // במקום להשתמש ב-candle, נשתמש ב-quote data
+    // instead of using candle, we use quote data
     const chartData = {
       labels: [new Date(Date.now() - 24 * 60 * 60 * 1000), new Date()],
       datasets: [{

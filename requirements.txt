@@ -3,22 +3,11 @@ flask-pymongo==2.3.0
 flask-jwt-extended==4.6.0
 python-dotenv==1.0.0
 flask-cors
-tailwindcss
-react-router-dom
 bcrypt==4.1.2
-node == v18.20.8
-npm == 10.8.2
 cloudinary
-axios
-recharts react-chartjs-2
 requests
-jspdf
-jspdf-autotable
-@react-google-maps/api
-react-leaflet leaflet
-chartjs-adapter-date-fns date-fns
 openai
-lucide-react
-azure-ai-inference
-@azure-rest/ai-inference @azure/core-auth
 finnhub-python
+azure-core
+azure-ai-inference
+google-generativeai

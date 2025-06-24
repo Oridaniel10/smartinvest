@@ -14,9 +14,9 @@ def calculate_invested_amount(portfolio):
 
 # listens for POST requests on /transaction/buy
 @transaction_bp.route("/buy", methods=["POST"])
-@jwt_required()
+@jwt_required() # checks if the user is logged in and returns the user_id
 def buy_stock():
-    user_id = get_jwt_identity() 
+    user_id = get_jwt_identity()  # checks if the user is logged in
     data = request.get_json()
     
     print(f"[/buy] Received data: {data}")
@@ -144,6 +144,7 @@ def sell_stock():
 
     return jsonify({"message": "Stock sold successfully", "new_balance": user.balance}), 200
 
+# listens for POST requests on /transaction/deposit 
 @transaction_bp.route("/deposit", methods=["POST"])
 @jwt_required()
 def deposit_funds():

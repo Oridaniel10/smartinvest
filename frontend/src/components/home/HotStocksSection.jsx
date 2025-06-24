@@ -7,6 +7,7 @@ function HotStocksSection() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  // fetches the hot stocks every 5 minutes
   useEffect(() => {
     const fetchHotStocks = async () => {
       try {

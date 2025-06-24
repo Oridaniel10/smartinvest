@@ -1,0 +1,38 @@
+version: '3.3'
+
+
+services:
+  backend:
+    image: oridaniel100/smart_invest:latest
+    working_dir: /app/backend
+    volumes:
+      - ./backend:/app/backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./backend/.env
+    command: python3 app.py
+    networks:
+      - smartinvest-net
+
+
+  frontend:
+    image: oridaniel100/smart_invest:latest
+    working_dir: /app/frontend
+    volumes:
+      - ./frontend:/app/frontend
+    ports:
+      - "3000:5173"
+    env_file:
+      - ./frontend/.env
+    command: sh -c "npm install && npm run dev -- --host"
+    networks:
+      - smartinvest-net
+
+networks:
+  smartinvest-net:
+
+
+networks:
+  smartinvest-net:
+

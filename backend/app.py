@@ -7,7 +7,8 @@ from config.extensions import mongo, jwt
 
 def create_app():
     app = Flask(__name__)
-    CORS(app)
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
     
     # Load configuration
     app.config["MONGO_URI"] = Config.MONGO_URI
@@ -50,4 +51,5 @@ def create_app():
 # Run the server
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True, port=Config.PORT)
+    app.run(debug=True, host="0.0.0.0", port=Config.PORT)
+

@@ -23,6 +23,8 @@ function RegisterPage() {
   useEffect(() => {
     return () => {
       if (preview) {
+        //revoke the object URL created for the image preview
+        //this is to free up memory and prevent memory leaks
         URL.revokeObjectURL(preview);
       }
     };
