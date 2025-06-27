@@ -1,5 +1,5 @@
 import React from 'react';
-import profileImage from '../../public/profileImage.png';
+import profileImage from '../../public/the_sia.jpeg';
 import MapContainer from './MapComponent';
 
 function Footer() {
@@ -10,7 +10,7 @@ function Footer() {
           
           {/* Profile Section */}
           <div className="flex-shrink-0">
-            <img src={profileImage} alt="Profile" className="w-24 h-24 rounded-full object-cover border-4 border-pink-500 shadow-lg"/>
+            <img src={profileImage} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-pink-500 shadow-lg"/>
           </div>
 
           {/* Contact Section */}

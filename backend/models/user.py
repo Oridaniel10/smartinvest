@@ -3,7 +3,7 @@ from bson import ObjectId
 from config.extensions import mongo # Import mongo instance
 
 class User:
-    def __init__(self, name, email, password, balance=0.0, portfolio=None, profile_image=None, profile_image_public_id=None, _id=None):
+    def __init__(self, name, email, password, balance=0.0, portfolio=None, profile_image=None, profile_image_public_id=None, is_public=True, _id=None):
         self.id = str(_id) if _id else None
         self.name = name
         self.email = email
@@ -12,6 +12,7 @@ class User:
         self.portfolio = portfolio if portfolio else []
         self.profile_image = profile_image 
         self.profile_image_public_id = profile_image_public_id
+        self.is_public = is_public
 
     @staticmethod
     def get_user_profile_data(user_id_str: str) -> dict:
@@ -49,7 +50,8 @@ class User:
             "balance": user_data.get('balance', 0),
             "profile_image": user_data.get('profile_image'),
             "portfolio": portfolio,
-            "transactions": transactions
+            "transactions": transactions,
+            "is_public": user_data.get('is_public', True)
         }
 
     @classmethod
@@ -62,6 +64,7 @@ class User:
             portfolio=data.get("portfolio", []),
             profile_image=data.get("profile_image"),  
             profile_image_public_id=data.get("profile_image_public_id"),
+            is_public=data.get("is_public", True),
             _id=data.get("_id")
         )
 
@@ -73,7 +76,8 @@ class User:
             "balance": self.balance,
             "portfolio": self.portfolio,
             "profile_image": self.profile_image,
-            "profile_image_public_id": self.profile_image_public_id
+            "profile_image_public_id": self.profile_image_public_id,
+            "is_public": self.is_public
         }
 
     def check_password(self, plain_password):

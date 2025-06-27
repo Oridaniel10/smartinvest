@@ -1,4 +1,4 @@
-import apiClient from './api';
+import apiClient from './apiClient';
 import axios from 'axios';
 
 /**
@@ -58,4 +58,13 @@ export const getTopUsers = async (timeframe = 'all') => {
     console.error(`Error fetching top users for timeframe ${timeframe}:`, error);
     throw error;
   }
+};
+
+/**
+ * Updates the user's privacy setting.
+ * @param {boolean} isPublic - The new privacy status.
+ */
+export const updateUserPrivacy = async (isPublic) => {
+  const response = await apiClient.post('/user/profile/privacy', { is_public: isPublic });
+  return response.data;
 };

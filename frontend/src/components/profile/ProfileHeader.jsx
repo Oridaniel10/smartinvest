@@ -1,6 +1,6 @@
 import React, { useRef, useState } from 'react';
-import { updateProfileImage } from '../../services/userService';
-import apiClient from '../../services/api'; // Direct use for deposit
+import { updateProfileImage, updateUserPrivacy } from '../../services/userService';
+import apiClient from '../../services/apiClient'; // apiClient for deposit
 import Spinner from '../Spinner';
 import { generateProfilePdf } from '../../utils/pdfGenerator';
 
@@ -11,12 +11,14 @@ import { generateProfilePdf } from '../../utils/pdfGenerator';
  * @param {object} props.user - The enhanced user object from the /profile endpoint.
  * @param {Function} props.onImageUpdate - Callback for image update.
  * @param {Function} props.onTransactionSuccess - Callback for deposit success.
+ * @param {Function} props.onPrivacyUpdate - Callback for privacy status update.
  * @param {boolean} [props.isPublicView=false] - If true, hides action buttons.
  */
-function ProfileHeader({ user, onImageUpdate, onTransactionSuccess, isPublicView = false }) {
+function ProfileHeader({ user, onImageUpdate, onTransactionSuccess, onPrivacyUpdate, isPublicView = false }) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDepositing, setIsDepositing] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [isUpdatingPrivacy, setIsUpdatingPrivacy] = useState(false);
   const [depositAmount, setDepositAmount] = useState('');
   const fileInputRef = useRef(null);
 
@@ -40,6 +42,21 @@ function ProfileHeader({ user, onImageUpdate, onTransactionSuccess, isPublicView
     }
   };
 
+  const handlePrivacyChange = async (e) => {
+    const newIsPublic = e.target.checked;
+    setIsUpdatingPrivacy(true);
+    try {
+        await updateUserPrivacy(newIsPublic);
+        onPrivacyUpdate(newIsPublic); // Notify parent component of the change
+    } catch (error) {
+        alert(`Failed to update privacy settings: ${error.message}`);
+        // If the API call fails, we rely on the parent to pass the original state back down
+        // to revert the toggle visually, ensuring UI consistency.
+    } finally {
+        setIsUpdatingPrivacy(false);
+    }
+  };
+
   const handleDeposit = async (e) => {
     e.preventDefault();
     const amount = parseFloat(depositAmount);
@@ -54,7 +71,7 @@ function ProfileHeader({ user, onImageUpdate, onTransactionSuccess, isPublicView
       onTransactionSuccess(); // Refresh profile data
       setDepositAmount('');
     } catch (error) {
-      alert(`Deposit failed: ${error.message}`);
+      alert(`Deposit failed: ${error.response?.data?.error || error.message}`);
     } finally {
       setIsDepositing(false);
     }
@@ -88,9 +105,9 @@ function ProfileHeader({ user, onImageUpdate, onTransactionSuccess, isPublicView
       <div className="flex flex-col items-center gap-4">
         <div className={`relative group ${!isPublicView && 'cursor-pointer'}`} onClick={!isPublicView ? handleImageClick : undefined}>
            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" disabled={isPublicView} />
-      <img
-        src={user.profile_image}
-        alt={`${user.name}'s profile`}
+          <img
+            src={user.profile_image}
+            alt={`${user.name}'s profile`}
             className="w-32 h-32 rounded-full object-cover border-4 border-pink-500 shadow-md transition-opacity group-hover:opacity-50"
           />
           {!isPublicView && (
@@ -102,6 +119,24 @@ function ProfileHeader({ user, onImageUpdate, onTransactionSuccess, isPublicView
         <div className="text-center">
            <h1 className="text-3xl font-bold text-gray-800 dark:text-white">{user.name}</h1>
         </div>
+
+        {!isPublicView && (
+          <div className="flex items-center justify-center gap-2 mt-2">
+            <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Private</span>
+            <label htmlFor="privacy-toggle" className="relative inline-flex items-center cursor-pointer">
+              <input
+                type="checkbox"
+                id="privacy-toggle"
+                checked={user.is_public}
+                onChange={handlePrivacyChange}
+                className="sr-only peer"
+                disabled={isUpdatingPrivacy}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-pink-300 dark:peer-focus:ring-pink-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-pink-600"></div>
+            </label>
+            <span className="text-sm font-medium text-gray-900 dark:text-gray-300">Public</span>
+          </div>
+        )}
       </div>
       
       {/* Divider */}

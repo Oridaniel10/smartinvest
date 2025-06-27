@@ -124,6 +124,7 @@ def get_user_profile():
         "email": user.email,
         "balance": round(user.balance, 2),
         "profile_image": user.profile_image,
+        "is_public": user.is_public,
         "portfolio": enhanced_portfolio,
         "transactions": transactions,
         "invested_amount": round(total_invested_amount, 2),
@@ -133,6 +134,28 @@ def get_user_profile():
         "overall_pl": overall_pl,
         "overall_pl_percentage": overall_pl_percentage
     }), 200
+
+
+@user_bp.route("/profile/privacy", methods=["POST"])
+@jwt_required()
+def update_privacy_setting():
+    user_id = get_jwt_identity()
+    data = request.get_json()
+    
+    try:
+        is_public = bool(data['is_public'])
+    except KeyError:
+        return jsonify({"error": "Missing 'is_public' field"}), 400
+    
+    result = mongo.db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": {"is_public": is_public}}
+    )
+    
+    if result.matched_count == 0:
+        return jsonify({"error": "User not found"}), 404
+        
+    return jsonify({"message": "Privacy setting updated successfully", "is_public": is_public}), 200
 
 
 @user_bp.route("/profile/image", methods=["POST"])
@@ -191,6 +214,10 @@ def public_user_profile(username):
     if not user_data:
         return jsonify({"error": "User not found"}), 404
 
+    # Enforce privacy setting
+    if not user_data.get("is_public", False):
+        return jsonify({"error": "This user's profile is private."}), 403
+
     user = User.from_dict(user_data)
     
     # --- Portfolio and P&L Calculations ---
@@ -243,6 +270,7 @@ def public_user_profile(username):
         "email": user.email,
         "balance": round(user.balance, 2),
         "profile_image": user.profile_image,
+        "is_public": user.is_public,
         "portfolio": enhanced_portfolio,
         "transactions": transactions,
         "invested_amount": round(total_invested_amount, 2),
@@ -265,7 +293,8 @@ def get_top_users():
         limit = int(request.args.get('limit', 3))
         sort_by = request.args.get('sortBy', 'overall_pl')
         
-        all_users = list(mongo.db.users.find({}))
+        # Only fetch users who have set their profile to public
+        all_users = list(mongo.db.users.find({"is_public": True}))
         
         all_user_stats = []
 

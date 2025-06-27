@@ -53,6 +53,13 @@ function ProfilePage() {
     // for a fully persistent change across the app, but for now this works for the profile page.
   };
 
+  const handlePrivacyUpdate = (newIsPublic) => {
+    setProfileData(prevData => ({
+      ...prevData,
+      is_public: newIsPublic,
+    }));
+  };
+
   if (isLoading) {
     return <div className="flex justify-center items-center h-64"><Spinner /></div>;
   }
@@ -75,7 +82,8 @@ function ProfilePage() {
           <ProfileHeader 
               user={profileData} 
               onImageUpdate={handleImageUpdate} 
-              onTransactionSuccess={handleTransactionSuccess} 
+              onTransactionSuccess={handleTransactionSuccess}
+              onPrivacyUpdate={handlePrivacyUpdate}
           />
           <PortfolioDashboard stats={profileData} />
           <HoldingsList portfolio={profileData.portfolio} />

@@ -48,7 +48,8 @@ def register():
         balance=0.0,  # Give every new user a starting balance of $10,000
         portfolio=[],
         profile_image=image_url,
-        profile_image_public_id=public_id
+        profile_image_public_id=public_id,
+        is_public=True # Default new users to public
     )
     # hash the user's password before storing it in the database
     user.hash_password()
@@ -102,6 +103,7 @@ def login():
             "name": user.name,
             "email": user.email,
             "balance": user.balance,
-            "profile_image": user.profile_image 
+            "profile_image": user.profile_image,
+            "is_public": user.is_public
         }
     }), STATUS["SUCCESS"]
